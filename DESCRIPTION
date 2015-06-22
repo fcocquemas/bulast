@@ -1,6 +1,6 @@
 Package: bulast
 Type: Package
-Title: Simpler BLS API Wrapper
+Title: Simpler Bureau of Labor Statistic (BLS) API Wrapper
 Version: 0.1
 Date: 2015-06-21
 Authors@R: person("Francois", "Cocquemas", email = "francois.cocquemas@gmail.com",
