@@ -1,0 +1,15 @@
+Package: bulast
+Type: Package
+Title: Simpler BLS API Wrapper
+Version: 0.1
+Date: 2015-06-21
+Authors@R: person("Francois", "Cocquemas", email = "francois.cocquemas@gmail.com",
+                  role = c("aut", "cre"))
+Description:  Access to the Bureau of Labor Statistics API. Provides a
+  slightly friendlier interface than the blsAPI package, by hiding the 
+  JSON code under the hood.
+License: MIT
+Imports:
+  httr
+Suggest:
+  data.table, lubridate
