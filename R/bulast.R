@@ -62,10 +62,12 @@ bulast <- function (seriesid, startyear = NULL, endyear = NULL, registrationKey 
         d
       }), use.names = TRUE, fill=TRUE)
       
-      dt[, seriesID := s[["seriesID"]]]
+      if(nrow(dt) > 0) {
+        dt[, seriesID := s[["seriesID"]]]
+      }
       dt
     }), use.names = TRUE, fill=TRUE)
-  
+    
     # Add a date field
     dt[, date := seq(as.Date(paste(year, ifelse(period == "M13", 12, substr(period, 2, 3)), "01", sep = "-")),
                      length = 2, by = "months")[2]-1,
@@ -92,3 +94,4 @@ bulast <- function (seriesid, startyear = NULL, endyear = NULL, registrationKey 
   
   r
 }
+
