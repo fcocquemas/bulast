@@ -4,9 +4,20 @@ This package provides access to the Bureau of Labor Statistics API in an (arguab
 
 It relies on `httr` and returns the results as a data.frame, or better yet a data.table if the `data.table` package is present.
 
+# Installation
+
+For now it is not on CRAN since it is likely to evolve. You will have to use the `devtools` package to install directly from Github:
+
+```{r}
+devtools::install_github("fcocquemas/bulast")
+```
+
+# Examples
+
 A simple example with the V1 API:
 
 ```{r}
+library(bulast)
 r <- bulast(c('LAUCN040010000000005', 'LAUCN040010000000006'), 
             startyear = 2010, endyear = 2012)
 r
