@@ -2,7 +2,7 @@
 
 This package provides access to the Bureau of Labor Statistics API in an (arguably) friendlier interface than the blsAPI package, by hiding the JSON code under the hood. 
 
-It relies on `httr` and returns the results as a data.frame, or better yet a data.table if the `data.table` package is present.
+It relies on `httr` and returns the results as a data.table with a Date field set at the last day of the period.
 
 # Installation
 
