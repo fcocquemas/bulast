@@ -26,8 +26,9 @@ registrationKey}
   registrationKey}
 }
 \value{
-list with names status (character), responseTime (integer), message
-  (list of character), Results (data.table)
+Returns a list with names status (character), responseTime (integer), message
+  (list of character), Results (data.table). Results has a date field that marks the
+  end of the month.
 }
 \description{
 Request data from the Bureau of Labor Statistics API
