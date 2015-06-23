@@ -1,6 +1,6 @@
 # bulast - A simpler R package to access the Bureau of Labor Statistics (BLS) API
 
-This package provides access to the Bureau of Labor Statistics API in an (arguably) friendlier interface than the blsAPI package, by hiding the JSON code under the hood and being a little more opinionated. It might not suit your use case, in which case you should definitely check out blsAPI.
+This package provides access to the Bureau of Labor Statistics API in an (arguably) friendlier interface than the [blsAPI package](http://www.github.com/mikeasilva/blsAPI), by hiding the JSON code under the hood and being a little more opinionated. It might not suit your use case, in which case you should definitely check out [blsAPI](http://www.github.com/mikeasilva/blsAPI).
 
 It relies on `httr`, and returns the results as a data.table with a `date` field set at the last day of the period. That would be December 31 for both December and annual data, so a periodType field is set to either "Monthly" or "Annual".
 

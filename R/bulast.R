@@ -48,7 +48,6 @@ bulast <- function (seriesid, startyear = NULL, endyear = NULL, registrationKey 
     # Put results into data.table format
     dt <- data.table::rbindlist(lapply(r$Results$series, function(s) {
       dt <- data.table::rbindlist(lapply(s$data, function(d) {
-        d[["value"]] <- as.numeric(d[["value"]])
         d[["footnotes"]] <- paste(unlist(d[["footnotes"]]), collapse = " ")
         if ("calculations" %in% names(d)) {
           d[["pct_ch_1"]] <- as.numeric(d[["calculations"]]$pct_changes$`1`)
@@ -67,28 +66,35 @@ bulast <- function (seriesid, startyear = NULL, endyear = NULL, registrationKey 
       }
       dt
     }), use.names = TRUE, fill=TRUE)
-    
-    # Add a date field
-    dt[, date := seq(as.Date(paste(year, ifelse(period == "M13", 12, substr(period, 2, 3)), "01", sep = "-")),
-                     length = 2, by = "months")[2]-1,
-       by="year,period"]
-    
-    # Remove year and period fields
-    dt[, `:=`(year = NULL, period = NULL)]
-    
-    # Remove periodName but add periodType (monthly or annual)
-    dt[, `:=`(periodType = factor(ifelse(periodName == "Annual", "Annual", "Monthly")), periodName = NULL)]
-    
-    # Reorder columns
-    setcolorder(dt, c("seriesID", "date", "value", "periodType",
-                      colnames(dt)[!colnames(dt) %in% 
-                                     c("seriesID", "date", "value", "periodType")]))
-    
-    # Key by series, data
-    setkey(dt, "seriesID", "date")
-    
-    # Replace Results with data.table
-    r$Results <- dt
+
+    if(nrow(dt) > 0) {
+
+      # Make value a numeric
+      d[, value := as.numeric(value)]
+      
+      # Add a date field
+      dt[, date := seq(as.Date(paste(year, ifelse(period == "M13", 12, substr(period, 2, 3)), "01", sep = "-")),
+                       length = 2, by = "months")[2]-1,
+         by="year,period"]
+      
+      # Remove year and period fields
+      dt[, `:=`(year = NULL, period = NULL)]
+      
+      # Remove periodName but add periodType (monthly or annual)
+      dt[, `:=`(periodType = factor(ifelse(periodName == "Annual", "Annual", "Monthly")), periodName = NULL)]
+      
+      # Reorder columns
+      setcolorder(dt, c("seriesID", "date", "value", "periodType",
+                        colnames(dt)[!colnames(dt) %in% 
+                                       c("seriesID", "date", "value", "periodType")]))
+      
+      # Key by series, data
+      setkey(dt, "seriesID", "date")
+      
+      # Replace Results with data.table
+      r$Results <- dt
+
+    }
   }
   
   
