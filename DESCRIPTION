@@ -7,9 +7,7 @@ Authors@R: person("Francois", "Cocquemas", email = "francois.cocquemas@gmail.com
                   role = c("aut", "cre"))
 Description:  Access to the Bureau of Labor Statistics API. Provides a
   slightly friendlier interface than the blsAPI package, by hiding the 
-  JSON code under the hood.
+  JSON code under the hood and returning a data.table with a Date field set at the last day of the period.
 License: MIT
 Imports:
-  httr
-Suggest:
-  data.table, lubridate
+  httr, data.table

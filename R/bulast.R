@@ -14,85 +14,65 @@
 #'   registrationKey
 #'   
 #' @return list with names status (character), responseTime (integer), message
-#'   (list of character), Results (data.frame, or data.table if available)
+#'   (list of character), Results (data.table)
 #' 
 #' @examples
 #' r <- bulast(c('LAUCN040010000000005', 'LAUCN040010000000006'))
 #' r$Results
 #' 
 
-bulast <- function(seriesid, startyear = NULL, endyear = NULL, registrationKey = NULL,
-                   catalog = FALSE, calculations = FALSE, annualaverage = FALSE) {
-    
-  # Build payload
-  payload <- list(seriesid = seriesid)
+bulast <- function (seriesid, startyear = NULL, endyear = NULL, registrationKey = NULL, 
+                    catalog = NULL, calculations = NULL, annualaverage = NULL) 
+{
+  # Build payload with non-NULL arguments only
+  payload <- Filter(is.character, sapply(c("startyear", "endyear", "registrationKey", 
+                      "catalog", "calculations", "annualaverage"), function(x) {
+                        if(exists(x) & eval(parse(text=paste0("!is.null(", x, ")")))) {
+                          tolower(as.character(eval(parse(text=x))))
+                        }
+                      }))
+  payload[["seriesid"]] <- seriesid
   
-  if (exists("startyear") & !is.null(startyear)) {
-    payload["startyear"] <- as.character(startyear)
-  }
+  # Pick V2 url if registrationKey is present, V1 otherwise
+  url <- ifelse("registrationKey" %in% names(payload),
+    "http://api.bls.gov/publicAPI/v2/timeseries/data/",
+    "http://api.bls.gov/publicAPI/v1/timeseries/data/")
   
-  if (exists("endyear") & !is.null(endyear)) {
-    payload["endyear"] <- as.character(endyear)
-  }  
+  # Perform request
+  r <- httr::content(httr::POST(url, body = rjson::toJSON(payload), 
+                                httr::content_type_json()))
   
-  if (exists("registrationKey") & !is.null(registrationKey)) {
-    if (exists("catalog") & !is.null(catalog)) {
-      payload["catalog"] <- tolower(as.character(catalog))
-    }
-    
-    if (exists("calculations") & !is.null(calculations)) {
-      payload["calculations"] <- tolower(as.character(calculations))
-    }
-    
-    if (exists("annualaverage") & !is.null(annualaverage)) {
-      payload["annualaverage"] <- tolower(as.character(annualaverage))
-    }
-    
-    payload["registrationKey"] <- as.character(registrationKey)
-    
-    url <- "http://api.bls.gov/publicAPI/v2/timeseries/data/"
-  } else {
-    url <- "http://api.bls.gov/publicAPI/v1/timeseries/data/"
-  }
-  
-  # Get content
-  r <- httr::content(httr::POST(url, body = rjson::toJSON(payload), httr::content_type_json()))
-  
-  # Unlist results and make a nice data.frame
+  # Put results into data.table format
   r$Results <- do.call("rbind", lapply(r$Results$series, function(s) {
     df <- do.call("rbind", lapply(s$data, function(d) {
-      df <- data.frame(year = as.integer(d[["year"]]), 
-                       period = d[["period"]], periodName = d[["periodName"]],
+      df <- data.table(year = as.integer(d[["year"]]), 
+                       period = d[["period"]], periodName = d[["periodName"]], 
                        value = as.numeric(d[["value"]]), 
-                       footnotes = paste(unlist(d[["footnotes"]]), collapse = " "), 
-                       stringsAsFactors = FALSE)
+                       footnotes = paste(unlist(d[["footnotes"]]), collapse = " "))
+      
       if ("calculations" %in% names(d)) {
         df$pct_ch_1 <- as.numeric(d[["calculations"]]$pct_changes$`1`)
         df$pct_ch_3 <- as.numeric(d[["calculations"]]$pct_changes$`3`)
         df$pct_ch_6 <- as.numeric(d[["calculations"]]$pct_changes$`6`)
         df$pct_ch_12 <- as.numeric(d[["calculations"]]$pct_changes$`12`)
       }
-      # TODO: add date field if lubridate is present
-      #             if (requireNamespace("lubridate", quietly = TRUE)) {
-      #                 df$date <- sapply(df, 1, function(x) {
-      #                   browser()
-      #                   if (x["period"] != "M13") {
-      #                     lubridate::"%m+%"(lubridate::ymd(paste(x["year"], substr(x["period"], 2, 3), "01", sep = "-")), 
-      #                       months(1)) - lubridate::days(1)
-      #                   } else {
-      #                     NA }})
-      #             }
-      
+
       df
-    }))
+    }), fill=TRUE)
     df$seriesID <- s[["seriesID"]]
     df
-  }))
+  }), fill=TRUE)
   
-  # Make a data.table if package is available
-  if (requireNamespace("data.table", quietly = TRUE)) {
-    r[["Results"]] <- data.table::as.data.table(r[["Results"]])
-  }
+  # Add a date field
+  r$Results[, date := 
+    as.Date(paste(year, ifelse(period == "M13", 12, substr(period, 2, 3)), "01", sep = "-")) + months(1) - days(1),
+    by="year,period"]
+  
+  # Remove year and period fields
+  r$Results[, `:=`(year = NULL, period = NULL)]
+
+  # Key by series, data
+  setkey(r$Results, "seriesID", "date")
   
   r
-} 
+}
