@@ -70,7 +70,7 @@ bulast <- function (seriesid, startyear = NULL, endyear = NULL, registrationKey 
     if(nrow(dt) > 0) {
 
       # Make value a numeric
-      d[, value := as.numeric(value)]
+      dt[, value := as.numeric(value)]
       
       # Add a date field
       dt[, date := seq(as.Date(paste(year, ifelse(period == "M13", 12, substr(period, 2, 3)), "01", sep = "-")),
